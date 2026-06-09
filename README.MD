@@ -4,18 +4,18 @@ Smart-home telemetry platform with ESP32 microcontrollers / BME280 temperature s
 
 # Architecture Overview
 
-![Data Flow](images\DataFlow.png)
+![Data Flow](images/DataFlow.png)
 
 <!-- ---
 
 ## Networking
 
-![MQTT Networking](..\images\MqqtNetworking.png)
+![MQTT Networking](images/MqqtNetworking.png)
 
 ## Thread Model & Message Routing
 
-![Thread Model and Flow](..\images\ThreadModelAndFlow.png)
+![Thread Model and Flow](images/ThreadModelAndFlow.png)
 
 ## Sequence Diagram
 
-![Sequence Diagram](..\images\SequenceDiagram.png) -->
+![Sequence Diagram](images/SequenceDiagram.png) -->
