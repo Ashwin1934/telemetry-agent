@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  sensor-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sensor-simulator
+    environment:
+      # Sensor configuration
+      DURATION: "600"              # Run for 10 minutes (600 seconds). Set to -1 for infinite
+      NUM_ROOMS: "5"               # Number of rooms to simulate
+      INTERVAL: "2"                # Seconds between sensor readings
+      # MQTT broker connection
+      # Use host.docker.internal to reach the broker on the host machine
+      MQTT_HOST: "host.docker.internal"
+      MQTT_PORT: "1883"
+    restart: "no"
