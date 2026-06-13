@@ -1,8 +1,14 @@
 package com.telemetry.messages;
+
+import akka.actor.typed.ActorRef;
+
 public class RoomMessages {
 
-    // Command to update room sensor data
-    public static class UpdateSensorData {
+    // Base interface for all room messages
+    public interface RoomCommand {}
+
+    // Command to update room sensor data (fire-and-forget)
+    public static class UpdateSensorData implements RoomCommand {
         public final String room;
         public final float temperature;
         public final float humidity;
@@ -26,12 +32,14 @@ public class RoomMessages {
         }
     }
 
-    // Query to get room state
-    public static class GetRoomState {
+    // Query to get room state (requires response via replyTo)
+    public static class GetRoomState implements RoomCommand {
         public final String room;
+        public final ActorRef<RoomState> replyTo;
 
-        public GetRoomState(String room) {
+        public GetRoomState(String room, ActorRef<RoomState> replyTo) {
             this.room = room;
+            this.replyTo = replyTo;
         }
 
         @Override
