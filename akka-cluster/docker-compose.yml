@@ -60,6 +60,26 @@ services:
       - ./logs:/app/logs
     restart: on-failure
 
+  # MCP Server - joins the cluster and exposes HTTP MCP endpoint
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: mcp-server/Dockerfile
+    container_name: mcp-server
+    environment:
+      AKKA_REMOTE_ARTERY_CANONICAL_HOSTNAME: mcp-server
+      AKKA_REMOTE_ARTERY_CANONICAL_PORT: 2553
+    ports:
+      - "8080:8080"
+      - "2553:2553"
+    depends_on:
+      - akka-node-1
+    networks:
+      - telemetry-net
+    volumes:
+      - ./logs:/app/logs
+    restart: on-failure
+
 networks:
   telemetry-net:
     driver: bridge

@@ -6,6 +6,10 @@ Smart-home telemetry platform with ESP32 microcontrollers / BME280 temperature s
 
 ![Data Flow](images/DataFlow.png)
 
+## Updated Architecture with MCP
+
+![Data Flow MCP](images/AkkaMCPCluster.png)
+
 <!-- ---
 
 ## Networking

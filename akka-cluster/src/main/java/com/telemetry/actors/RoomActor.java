@@ -59,14 +59,20 @@ public class RoomActor extends AbstractBehavior<Object> {
         return this;
     }
 
-    // Handle state query
-    // Can be extended to support replyTo for sending state to requestor
+    // Handle state query and respond via replyTo
+    // Sends the current room state back to the requestor
     private Behavior<Object> onGetRoomState(RoomMessages.GetRoomState query) {
         log.info("State query for room {}: temp={}, humidity={}, lastUpdate={}", 
                  room, temperature, humidity, lastUpdate);
         
-        // Future: Send response via replyTo ActorRef
-        // response: new RoomMessages.RoomState(room, temperature, humidity, lastUpdate)
+        // Send response via replyTo ActorRef
+        RoomMessages.RoomState response = new RoomMessages.RoomState(
+            room,
+            temperature,
+            humidity,
+            lastUpdate
+        );
+        query.replyTo.tell(response);
 
         return this;
     }
