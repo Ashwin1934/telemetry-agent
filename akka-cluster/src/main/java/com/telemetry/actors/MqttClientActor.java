@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.telemetry.messages.RoomMessages;
 
-import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -52,7 +51,7 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
 
     private final Gson gson = new Gson();
     private MqttClient mqttClient;
-    private ActorRef<Object> roomShardRegion;
+    private akka.cluster.sharding.typed.javadsl.ClusterSharding sharding;
     private String mqttTopic;
 
     public MqttClientActor(ActorContext<MqttCommand> context) {
@@ -75,7 +74,7 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
     // Initialize and connect to MQTT broker
     // Once connected, subscribe to the configured topic
     private Behavior<MqttCommand> onStartMqtt(StartMqtt command) {
-        this.roomShardRegion = command.roomShardRegion;
+        this.sharding = command.sharding;
         this.mqttTopic = command.topic;
 
         try {
@@ -180,7 +179,10 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
 
             // Get EntityRef for the room using room name as entity ID
             // entityRefFor() returns a reference to the entity, creating it if it doesn't exist
-            ActorRef<Object> roomEntityRef = sharding.entityRefFor("RoomEntity", room);
+            akka.cluster.sharding.typed.javadsl.EntityTypeKey<Object> typeKey = 
+            akka.cluster.sharding.typed.javadsl.EntityTypeKey.create(Object.class, "RoomEntity");
+
+            akka.cluster.sharding.typed.javadsl.EntityRef<Object> roomEntityRef = sharding.entityRefFor(typeKey, room);
 
             // Send the message to the specific room entity
             roomEntityRef.tell(update);
