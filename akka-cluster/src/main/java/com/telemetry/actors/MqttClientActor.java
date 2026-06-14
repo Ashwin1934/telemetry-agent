@@ -179,10 +179,7 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
 
             // Get EntityRef for the room using room name as entity ID
             // entityRefFor() returns a reference to the entity, creating it if it doesn't exist
-            akka.cluster.sharding.typed.javadsl.EntityTypeKey<Object> typeKey = 
-            akka.cluster.sharding.typed.javadsl.EntityTypeKey.create(Object.class, "RoomEntity");
-
-            akka.cluster.sharding.typed.javadsl.EntityRef<Object> roomEntityRef = sharding.entityRefFor(typeKey, room);
+            akka.cluster.sharding.typed.javadsl.EntityRef<Object> roomEntityRef = sharding.entityRefFor(RoomActor.typeKey, room);
 
             // Send the message to the specific room entity
             roomEntityRef.tell(update);

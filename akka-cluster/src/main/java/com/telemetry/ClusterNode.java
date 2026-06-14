@@ -1,17 +1,19 @@
 package com.telemetry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.telemetry.actors.MqttClientActor;
+import com.telemetry.actors.RoomActor;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.typed.Cluster;
-import com.telemetry.actors.MqttClientActor;
-import com.telemetry.actors.RoomActor;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 // Main entry point for Akka cluster node
 // Supports running as either node (1 or 2) via environment variable NODE_ID
@@ -78,7 +80,7 @@ public class ClusterNode {
                 // Each room name becomes an entity ID, and each room gets its own actor instance
                 var roomShardRegion = sharding.init(
                     Entity.of(
-                        "RoomEntity",
+                        RoomActor.typeKey,
                         ctx -> RoomActor.create(ctx.getEntityId())
                     )
                 );
