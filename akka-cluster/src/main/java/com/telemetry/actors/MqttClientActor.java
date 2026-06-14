@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.telemetry.messages.RoomMessages;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
@@ -53,14 +54,30 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
     private MqttClient mqttClient;
     private akka.cluster.sharding.typed.javadsl.ClusterSharding sharding;
     private String mqttTopic;
+    private final ActorRef<RoomRegistryActor.Command>
+        roomRegistry;
 
-    public MqttClientActor(ActorContext<MqttCommand> context) {
-        super(context);
-    }
+    public MqttClientActor(
+        ActorContext<MqttCommand> context,
+        ActorRef<RoomRegistryActor.Command> roomRegistry) {
+
+    super(context);
+
+    this.roomRegistry = roomRegistry;
+}
 
     // Factory method to create MQTT client actor
-    public static Behavior<MqttCommand> create() {
-        return Behaviors.setup(MqttClientActor::new);
+    public static Behavior<MqttCommand> create(
+        ActorRef<RoomRegistryActor.Command>
+                roomRegistry) {
+
+        return Behaviors.setup(
+                context ->
+                        new MqttClientActor(
+                                context,
+                                roomRegistry
+                        )
+        );
     }
 
     @Override

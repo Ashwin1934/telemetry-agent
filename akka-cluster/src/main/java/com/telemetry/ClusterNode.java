@@ -5,9 +5,11 @@ import org.slf4j.LoggerFactory;
 
 import com.telemetry.actors.MqttClientActor;
 import com.telemetry.actors.RoomActor;
+import com.telemetry.actors.RoomRegistryActor;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import akka.actor.typed.ActorRef;
 import akka.actor.typed.ActorSystem;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.Behaviors;
@@ -91,8 +93,12 @@ public class ClusterNode {
                 // The MQTT client will route messages to room entities via the shard region
                 if ("1".equals(nodeId)) {
                     log.info("Node 1 detected. Starting MQTT client actor.");
+                    ActorRef<RoomRegistryActor.Command> roomRegistryRef = context.spawn(
+                        RoomRegistryActor.create(),
+                        "room-registry"
+                    );
                     var mqttClientRef = context.spawn(
-                        MqttClientActor.create(),
+                        MqttClientActor.create(roomRegistryRef),
                         "mqtt-client"
                     );
 
