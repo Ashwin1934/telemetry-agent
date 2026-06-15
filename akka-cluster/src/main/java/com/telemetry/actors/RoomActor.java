@@ -17,6 +17,8 @@ import akka.actor.typed.javadsl.Receive;
 // State stored: temperature, humidity, and lastUpdate timestamp
 public class RoomActor extends AbstractBehavior<Object> {
     private static final Logger log = LoggerFactory.getLogger(RoomActor.class);
+    public static final akka.cluster.sharding.typed.javadsl.EntityTypeKey<Object> typeKey = 
+            akka.cluster.sharding.typed.javadsl.EntityTypeKey.create(Object.class, "RoomEntity");
 
     private final String room;
     private float temperature = 0.0f;

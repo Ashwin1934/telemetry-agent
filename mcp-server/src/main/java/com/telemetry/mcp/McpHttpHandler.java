@@ -16,6 +16,9 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import scala.concurrent.duration.Duration;
+import com.google.gson.JsonArray;
+import java.util.List;
+import java.util.ArrayList;
 
 /**
  * HTTP handler for MCP endpoints.
@@ -48,6 +51,9 @@ public class McpHttpHandler extends AllDirectives {
                         post(() -> handleToolCall(toolName))
                     )
                 )),
+                path("rooms", () ->
+                    get(() -> handleGetAllRooms())
+                ),
                 pathPrefix("room", () -> concat(
                     path(Segment, roomName ->
                         get(() -> handleGetRoomState(roomName))
@@ -217,6 +223,75 @@ public class McpHttpHandler extends AllDirectives {
             akka.http.javadsl.model.StatusCodes.OK,
             response.toString(),
             Jackson.marshaller()
+        );
+    }
+
+    private Route handleGetAllRooms() {
+
+        List<String> roomNames = List.of(
+                "LivingRoom",
+                "Bedroom"
+        );
+
+        List<CompletionStage<RoomMessages.RoomState>> futures
+                = new ArrayList<>();
+
+        for (String roomName : roomNames) {
+
+            EntityRef<Object> roomRef = sharding.entityRefFor(
+                    "RoomEntity",
+                    roomName
+            );
+
+            CompletionStage<RoomMessages.RoomState> response
+                    = AskPattern.ask(
+                            roomRef,
+                            (ActorRef<RoomMessages.RoomState> replyTo)
+                            -> new RoomMessages.GetRoomState(
+                                    roomName,
+                                    replyTo
+                            ),
+                            askTimeout,
+                            sharding.system().scheduler()
+                    );
+
+            futures.add(response);
+        }
+
+        CompletionStage<Void> all
+                = java.util.concurrent.CompletableFuture.allOf(
+                        futures.stream()
+                                .map(CompletionStage::toCompletableFuture)
+                                .toArray(java.util.concurrent.CompletableFuture[]::new)
+                );
+
+        return onSuccess(
+                all,
+                ignored -> {
+
+                    JsonArray rooms = new JsonArray();
+
+                    for (CompletionStage<RoomMessages.RoomState> future : futures) {
+
+                        RoomMessages.RoomState state
+                        = future.toCompletableFuture().join();
+
+                        JsonObject room = new JsonObject();
+
+                        room.addProperty("room", state.room);
+                        room.addProperty("temperature", state.temperature);
+                        room.addProperty("humidity", state.humidity);
+                        room.addProperty("lastUpdate", state.lastUpdate);
+
+                        rooms.add(room);
+                    }
+
+                    return complete(
+                            akka.http.javadsl.model.StatusCodes.OK,
+                            rooms.toString(),
+                            Jackson.marshaller()
+                    );
+                }
         );
     }
 }

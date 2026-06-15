@@ -52,16 +52,32 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
 
     private final Gson gson = new Gson();
     private MqttClient mqttClient;
-    private ActorRef<Object> roomShardRegion;
+    private akka.cluster.sharding.typed.javadsl.ClusterSharding sharding;
     private String mqttTopic;
+    private final ActorRef<RoomRegistryActor.Command>
+        roomRegistry;
 
-    public MqttClientActor(ActorContext<MqttCommand> context) {
-        super(context);
-    }
+    public MqttClientActor(
+        ActorContext<MqttCommand> context,
+        ActorRef<RoomRegistryActor.Command> roomRegistry) {
+
+    super(context);
+
+    this.roomRegistry = roomRegistry;
+}
 
     // Factory method to create MQTT client actor
-    public static Behavior<MqttCommand> create() {
-        return Behaviors.setup(MqttClientActor::new);
+    public static Behavior<MqttCommand> create(
+        ActorRef<RoomRegistryActor.Command>
+                roomRegistry) {
+
+        return Behaviors.setup(
+                context ->
+                        new MqttClientActor(
+                                context,
+                                roomRegistry
+                        )
+        );
     }
 
     @Override
@@ -75,7 +91,7 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
     // Initialize and connect to MQTT broker
     // Once connected, subscribe to the configured topic
     private Behavior<MqttCommand> onStartMqtt(StartMqtt command) {
-        this.roomShardRegion = command.roomShardRegion;
+        this.sharding = command.sharding;
         this.mqttTopic = command.topic;
 
         try {
@@ -180,7 +196,7 @@ public class MqttClientActor extends AbstractBehavior<MqttClientActor.MqttComman
 
             // Get EntityRef for the room using room name as entity ID
             // entityRefFor() returns a reference to the entity, creating it if it doesn't exist
-            ActorRef<Object> roomEntityRef = sharding.entityRefFor("RoomEntity", room);
+            akka.cluster.sharding.typed.javadsl.EntityRef<Object> roomEntityRef = sharding.entityRefFor(RoomActor.typeKey, room);
 
             // Send the message to the specific room entity
             roomEntityRef.tell(update);
